@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.geom.*;
+import java.util.Random;
 
 /**
  * Class BouncingBall - a graphical ball that observes the effect of gravity. The ball
@@ -9,101 +10,90 @@ import java.awt.geom.*;
  *
  * This movement can be initiated by repeated calls to the "move" method.
  * 
- * @author Michael Kölling (mik)
- * @author David J. Barnes
- * @author Bruce Quig
- *
- * @version 2016.02.29
+ * @author Lirik Salihu
+ * @version 2016.10.20
  */
 
 public class BouncingBall
 {
-    private static final int GRAVITY = 3;  // effect of gravity
-
-    private int ballDegradation = 2;
-    private Ellipse2D.Double circle;
-    private Color color;
-    private int diameter;
     private int xPosition;
     private int yPosition;
-    private final int groundPosition;      // y position of ground
+    private int diameter;
+    private Color color;
     private Canvas canvas;
-    private int ySpeed = 1;                // initial downward speed
+    private int xSpeed;
+    private int ySpeed;
+    private int leftWall;
+    private int rightWall;
+    private int topWall;
+    private int bottomWall;
 
     /**
-     * Constructor for objects of class BouncingBall
+     * Constructor for objects of class BoxBall
      *
-     * @param xPos  the horizontal coordinate of the ball
-     * @param yPos  the vertical coordinate of the ball
-     * @param ballDiameter  the diameter (in pixels) of the ball
-     * @param ballColor  the color of the ball
-     * @param groundPos  the position of the ground (where the wall will bounce)
-     * @param drawingCanvas  the canvas to draw this ball on
+     * @param xPos the horizontal coordinate of the ball
+     * @param yPos the vertical coordinate of the ball
+     * @param ballDiameter the diameter of the ball
+     * @param ballColor the color of the ball
+     * @param canvas the canvas to draw this ball on
+     * @param left the x-coordinate of the left wall
+     * @param right the x-coordinate of the right wall
+     * @param top the y-coordinate of the top wall
+     * @param bottom the y-coordinate of the bottom wall
      */
-    public BouncingBall(int xPos, int yPos, int ballDiameter, Color ballColor,
-                        int groundPos, Canvas drawingCanvas)
-    {
+    public BouncingBall(int xPos, int yPos, int ballDiameter, Color ballColor, Canvas canvas, 
+                   int left, int right, int top, int bottom) {
         xPosition = xPos;
         yPosition = yPos;
-        color = ballColor;
         diameter = ballDiameter;
-        groundPosition = groundPos;
-        canvas = drawingCanvas;
+        color = ballColor;
+        this.canvas = canvas;
+        leftWall = left;
+        rightWall = right;
+        topWall = top;
+        bottomWall = bottom;
+
+        // Random speed generation that is not vertical or horizontal
+        Random rand = new Random();
+        do {
+            xSpeed = rand.nextInt(15) - 7;  // random value between -7 and 7
+            ySpeed = rand.nextInt(15) - 7;  // random value between -7 and 7
+        } while (xSpeed == 0 || ySpeed == 0);
     }
 
     /**
      * Draw this ball at its current position onto the canvas.
-     **/
-    public void draw()
-    {
+     */
+    public void draw() {
         canvas.setForegroundColor(color);
         canvas.fillCircle(xPosition, yPosition, diameter);
     }
 
     /**
      * Erase this ball at its current position.
-     **/
-    public void erase()
-    {
-        canvas.eraseCircle(xPosition, yPosition, diameter);
-    }    
-
-    /**
-     * Move this ball according to its position and speed and redraw.
-     **/
-    public void move()
-    {
-        // remove from canvas at the current position
-        erase();
-            
-        // compute new position
-        ySpeed += GRAVITY;
-        yPosition += ySpeed;
-        xPosition +=2;
-
-        // check if it has hit the ground
-        if (yPosition >= (groundPosition - diameter) && ySpeed > 0) {
-            yPosition = (int)(groundPosition - diameter);
-            ySpeed = -ySpeed + ballDegradation; 
-        }
-
-        // draw again at new position
-        draw();
-    }    
-
-    /**
-     * return the horizontal position of this ball
      */
-    public int getXPosition()
-    {
-        return xPosition;
+    public void erase() {
+        canvas.eraseCircle(xPosition, yPosition, diameter);
     }
 
     /**
-     * return the vertical position of this ball
+     * Move this ball and bounce off the walls of the box.
      */
-    public int getYPosition()
-    {
-        return yPosition;
+    public void move() {
+        erase();
+        
+        // Update position
+        xPosition += xSpeed;
+        yPosition += ySpeed;
+
+        // Bounce off the walls
+        if (xPosition <= leftWall || xPosition >= (rightWall - diameter)) {
+            xSpeed = -xSpeed; // Reverse direction
+        }
+        if (yPosition <= topWall || yPosition >= (bottomWall - diameter)) {
+            ySpeed = -ySpeed; // Reverse direction
+        }
+
+        draw();
     }
 }
